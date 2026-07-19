@@ -33,7 +33,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Search
         <ul className="divide-y rounded border">
           {shops.map((shop) => (
             <li key={shop.id} className="p-4 hover:bg-gray-50">
-              <Link href={`/shops/${shop.id}`} className="flex items-center justify-between">
+              <Link href={`/shop/${shop.id}`} className="flex items-center justify-between">
                 <span>
                   <span className="font-medium">{shop.name}</span>{" "}
                   {shop.verified && <span className="text-green-600 text-xs">✓ verified</span>}

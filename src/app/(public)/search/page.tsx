@@ -43,7 +43,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
       <ul className="divide-y">
         {results.map((shop) => (
           <li key={shop.id} className="py-3">
-            <Link href={`/shops/${shop.id}`} className="font-medium">
+            <Link href={`/shop/${shop.id}`} className="font-medium">
               {shop.name}
             </Link>
             <span className="block text-sm text-gray-500">
