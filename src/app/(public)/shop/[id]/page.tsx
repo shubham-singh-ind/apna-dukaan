@@ -40,8 +40,9 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     shop.description ??
     `${shop.name}: ${shop.category.name} in ${shop.locality.name}, ${shop.locality.city}. Address, timings, phone and WhatsApp.`;
   const url = `${APP_URL}/shop/${shop.id}`;
-  const image = shop.photos[0]?.url;
 
+  // og:image / twitter:image are supplied automatically by the sibling
+  // opengraph-image.tsx (dynamic branded card), so they're not set here.
   return {
     title,
     description,
@@ -53,13 +54,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       type: "website",
       siteName: "Apna Dukaan",
       locale: "en_IN",
-      images: image ? [{ url: image }] : undefined,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
     },
   };
 }
