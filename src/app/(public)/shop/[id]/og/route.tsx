@@ -1,15 +1,14 @@
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
 
-// Prisma needs the Node runtime (not Edge). ImageResponse works here too.
+// Explicit OG image route at a fixed URL: /shop/{id}/og — referenced directly
+// from the shop page's metadata, so the absolute URL is fully under our control
+// (no metadataBase resolution). Node runtime so Prisma works.
 export const runtime = "nodejs";
-export const revalidate = 3600;
 
-export const alt = "Shop on Apna Dukaan";
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+const SIZE = { width: 1200, height: 630 };
 
-export default async function OgImage({ params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const shop = await prisma.shop
@@ -53,7 +52,6 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
             style={{ position: "absolute", inset: 0, width: 1200, height: 630, objectFit: "cover" }}
           />
         )}
-        {/* Dark gradient overlay for text legibility (over photo, or as the card bg) */}
         <div
           style={{
             position: "absolute",
@@ -75,7 +73,6 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
             color: "white",
           }}
         >
-          {/* Brand */}
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div
               style={{
@@ -109,12 +106,10 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
             </div>
           </div>
 
-          {/* Name */}
           <div style={{ display: "flex", fontSize: 72, fontWeight: 700, lineHeight: 1.05 }}>
             {name}
           </div>
 
-          {/* Category · locality */}
           <div style={{ display: "flex", fontSize: 34, color: "#cbd5e1" }}>{meta}</div>
 
           {shop?.verified && (
@@ -150,6 +145,6 @@ export default async function OgImage({ params }: { params: Promise<{ id: string
         </div>
       </div>
     ),
-    { ...size },
+    SIZE,
   );
 }

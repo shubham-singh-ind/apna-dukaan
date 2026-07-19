@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { getBaseUrl } from "@/lib/base-url";
 import {
   PhoneIcon,
   MessageIcon,
@@ -11,13 +12,6 @@ import {
 } from "@/components/icons";
 
 type Params = Promise<{ id: string }>;
-
-// ISR: HTML is cached at the edge and refreshed periodically. Far cheaper for
-// slow connections than rendering per request; new photos/edits appear within
-// the revalidate window.
-export const revalidate = 300;
-
-const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 function getShop(id: string) {
   return prisma.shop.findUnique({
@@ -39,11 +33,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const description =
     shop.description ??
     `${shop.name}: ${shop.category.name} in ${shop.locality.name}, ${shop.locality.city}. Address, timings, phone and WhatsApp.`;
-  const url = `${APP_URL}/shop/${shop.id}`;
+  const base = await getBaseUrl();
+  const url = `${base}/shop/${shop.id}`;
+  // Explicit absolute OG image URL (served by ./og/route.tsx) — built from the
+  // request host so it's always the real domain, never a stale localhost.
+  const ogImage = `${base}/shop/${shop.id}/og`;
 
-  // og:image / twitter:image are supplied automatically by the sibling
-  // opengraph-image.tsx (dynamic branded card), so they're not set here.
   return {
+    metadataBase: new URL(base),
     title,
     description,
     alternates: { canonical: url },
@@ -54,11 +51,13 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       type: "website",
       siteName: "Apna Dukaan",
       locale: "en_IN",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImage],
     },
   };
 }
@@ -71,7 +70,7 @@ export default async function ShopDetailPage({ params }: { params: Params }) {
   const shop = await getShop(id);
   if (!shop) notFound();
 
-  const url = `${APP_URL}/shop/${shop.id}`;
+  const url = `${await getBaseUrl()}/shop/${shop.id}`;
   const mapQuery =
     shop.lat != null && shop.lng != null
       ? `${shop.lat},${shop.lng}`
