@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import ShopCard, { type ShopCardData } from "@/components/ShopCard";
+import { type ShopCardData } from "@/components/ShopCard";
+import NearbyShops from "@/components/NearbyShops";
 import {
   SearchIcon,
   CategoryIcon,
@@ -115,11 +116,9 @@ export default async function HomePage() {
               <ArrowRightIcon className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {featured.map((shop) => (
-              <ShopCard key={shop.id} shop={shop} />
-            ))}
-          </div>
+          {/* Auto-detects location on load and shows distance on each card;
+              featured order is preserved (no re-sort, no button). */}
+          <NearbyShops shops={featured} autoLocate showButton={false} sortByDistance={false} />
         </section>
       )}
 

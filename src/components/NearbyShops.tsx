@@ -1,18 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShopCard, { type ShopCardData } from "./ShopCard";
 import { haversineKm } from "@/lib/distance";
 import { MapPinIcon } from "./icons";
 
 type Status = "idle" | "loading" | "ready" | "denied" | "unsupported" | "error";
 
-// Progressive enhancement: the grid is server-rendered (SEO + no-JS). This adds
-// a "near me" button that computes distance to each shop in the browser and
-// sorts nearest-first. No extra API/DB calls.
-export default function NearbyShops({ shops }: { shops: ShopCardData[] }) {
+interface Props {
+  shops: ShopCardData[];
+  /** Request location automatically on mount (home page) instead of on click. */
+  autoLocate?: boolean;
+  /** Show the "near me" button + status text. Default true (listing page). */
+  showButton?: boolean;
+  /** Re-order nearest-first once located. Default true (listing page). */
+  sortByDistance?: boolean;
+}
+
+// Progressive enhancement: the grid is server-rendered (SEO + no-JS). Computes
+// distance to each shop in the browser; no extra API/DB calls.
+export default function NearbyShops({
+  shops,
+  autoLocate = false,
+  showButton = true,
+  sortByDistance = true,
+}: Props) {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [status, setStatus] = useState<Status>("idle");
+
+  // Home page: ask for location as soon as the page loads.
+  useEffect(() => {
+    if (autoLocate) locate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLocate]);
 
   function locate() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -38,7 +58,7 @@ export default function NearbyShops({ shops }: { shops: ShopCardData[] }) {
         : null,
   }));
 
-  if (coords) {
+  if (coords && sortByDistance) {
     withDistance.sort((a, b) => {
       if (a.d == null) return 1; // shops without coords go last
       if (b.d == null) return -1;
@@ -57,27 +77,29 @@ export default function NearbyShops({ shops }: { shops: ShopCardData[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          onClick={locate}
-          disabled={status === "loading"}
-          className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
-        >
-          <MapPinIcon className="h-4 w-4" />
-          {coords ? "Update my location" : "Show shops near me"}
-        </button>
-        {message[status] && (
-          <span
-            className={
-              status === "denied" || status === "error" || status === "unsupported"
-                ? "text-sm text-red-600"
-                : "text-sm text-slate-500"
-            }
+      {showButton && (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={locate}
+            disabled={status === "loading"}
+            className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-60"
           >
-            {message[status]}
-          </span>
-        )}
-      </div>
+            <MapPinIcon className="h-4 w-4" />
+            {coords ? "Update my location" : "Show shops near me"}
+          </button>
+          {message[status] && (
+            <span
+              className={
+                status === "denied" || status === "error" || status === "unsupported"
+                  ? "text-sm text-red-600"
+                  : "text-sm text-slate-500"
+              }
+            >
+              {message[status]}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {withDistance.map(({ shop, d }) => (
