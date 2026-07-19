@@ -1,0 +1,111 @@
+// Apna Dukaan — data model (see PROJECT.md §7)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String
+  slug  String @unique
+  shops Shop[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Locality {
+  id      String @id @default(cuid())
+  name    String
+  pincode String
+  city    String
+  shops   Shop[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pincode])
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  name        String
+  categoryId  String
+  localityId  String
+  address     String
+  lat         Float?
+  lng         Float?
+  phone       String?
+  whatsapp    String?
+  hours       String?
+  description String?
+  verified    Boolean  @default(false)
+  isFeatured  Boolean  @default(false)
+
+  category Category      @relation(fields: [categoryId], references: [id])
+  locality Locality      @relation(fields: [localityId], references: [id])
+  photos   ShopPhoto[]
+  updates  StockUpdate[]
+  owner    Owner?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([localityId])
+  @@index([isFeatured])
+}
+
+model ShopPhoto {
+  id     String @id @default(cuid())
+  shopId String
+  url    String
+  sort   Int    @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([shopId])
+}
+
+model StockUpdate {
+  id        String    @id @default(cuid())
+  shopId    String
+  text      String
+  imageUrl  String?
+  expiresAt DateTime?
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([shopId])
+  @@index([expiresAt])
+}
+
+// Phase 2 — owner self-service
+model Owner {
+  id     String @id @default(cuid())
+  phone  String @unique
+  shopId String @unique
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Admin {
+  id           String @id @default(cuid())
+  name         String
+  email        String @unique
+  passwordHash String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
