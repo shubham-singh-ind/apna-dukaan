@@ -8,7 +8,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let shops: { id: string; updatedAt: Date }[] = [];
   try {
-    shops = await prisma.shop.findMany({ select: { id: true, updatedAt: true } });
+    shops = await prisma.shop.findMany({
+      where: { isActive: true },
+      select: { id: true, updatedAt: true },
+    });
   } catch {
     // DB unreachable — still emit the static routes.
   }

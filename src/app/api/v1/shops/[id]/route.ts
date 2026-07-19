@@ -5,8 +5,8 @@ import { ok, error, handleError } from "@/lib/api";
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const shop = await prisma.shop.findUnique({
-      where: { id },
+    const shop = await prisma.shop.findFirst({
+      where: { id, isActive: true },
       include: {
         category: true,
         locality: true,

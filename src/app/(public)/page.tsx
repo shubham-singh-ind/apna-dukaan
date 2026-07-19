@@ -25,10 +25,10 @@ export default async function HomePage() {
 
   try {
     [categories, localities, featured] = await Promise.all([
-      prisma.category.findMany({ orderBy: { name: "asc" } }),
-      prisma.locality.findMany({ orderBy: { name: "asc" } }),
+      prisma.category.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+      prisma.locality.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
       prisma.shop.findMany({
-        where: { isFeatured: true },
+        where: { isFeatured: true, isActive: true },
         orderBy: { createdAt: "desc" },
         take: 6,
         include: SHOP_INCLUDE,

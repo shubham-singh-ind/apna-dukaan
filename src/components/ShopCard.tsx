@@ -1,18 +1,28 @@
 import Link from "next/link";
 import { MapPinIcon, BadgeCheckIcon, StarIcon, StoreIcon } from "./icons";
+import { formatDistance } from "@/lib/distance";
 
 export interface ShopCardData {
   id: string;
   name: string;
   verified: boolean;
   isFeatured: boolean;
+  lat: number | null;
+  lng: number | null;
   category: { name: string };
   locality: { name: string };
   photos: { url: string }[];
 }
 
-// Server-rendered shop card. Lazy image, no client JS.
-export default function ShopCard({ shop }: { shop: ShopCardData }) {
+// Shop card. Server-renderable and client-renderable (no server-only imports),
+// so it works inside the NearbyShops client component too.
+export default function ShopCard({
+  shop,
+  distanceKm,
+}: {
+  shop: ShopCardData;
+  distanceKm?: number | null;
+}) {
   const photo = shop.photos[0]?.url;
 
   return (
@@ -39,6 +49,12 @@ export default function ShopCard({ shop }: { shop: ShopCardData }) {
           <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-medium text-white shadow-sm">
             <StarIcon className="h-3 w-3" />
             Featured
+          </span>
+        )}
+        {typeof distanceKm === "number" && (
+          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/95 px-2 py-0.5 text-xs font-medium text-slate-700 shadow-sm">
+            <MapPinIcon className="h-3 w-3 text-indigo-600" />
+            {formatDistance(distanceKm)}
           </span>
         )}
       </div>

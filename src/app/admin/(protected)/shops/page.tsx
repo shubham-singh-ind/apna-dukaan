@@ -11,7 +11,7 @@ export default async function AdminShopsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const verifiedCount = shops.filter((s) => s.verified).length;
+  const activeCount = shops.filter((s) => s.isActive).length;
 
   return (
     <div className="space-y-4">
@@ -19,7 +19,7 @@ export default async function AdminShopsPage() {
         <div>
           <h1 className="text-2xl font-bold">Shops</h1>
           <p className="text-sm text-gray-500">
-            {shops.length} total · {verifiedCount} verified
+            {shops.length} total · {activeCount} active
           </p>
         </div>
         <Link href="/admin/shops/new" className="rounded bg-black px-3 py-2 text-sm text-white">
@@ -47,25 +47,33 @@ export default async function AdminShopsPage() {
             </thead>
             <tbody>
               {shops.map((s) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={s.id}
+                  className={`border-b hover:bg-gray-50 ${s.isActive ? "" : "opacity-50"}`}
+                >
                   <td className="py-2 font-medium">{s.name}</td>
                   <td>{s.category.name}</td>
                   <td>{s.locality.name}</td>
                   <td>
-                    <span className={s.verified ? "text-green-600" : "text-gray-400"}>
-                      {s.verified ? "Verified" : "Unverified"}
+                    <span
+                      className={
+                        s.isActive
+                          ? "rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700"
+                          : "rounded bg-gray-200 px-1.5 py-0.5 text-xs text-gray-600"
+                      }
+                    >
+                      {s.isActive ? "Active" : "Inactive"}
                     </span>
+                    {s.verified && <span className="ml-2 text-xs text-indigo-600">✓ Verified</span>}
                     {s.isFeatured && (
                       <span className="ml-2 rounded bg-yellow-100 px-1.5 py-0.5 text-xs">
                         Featured
                       </span>
                     )}
                   </td>
-                  <td className="text-gray-500">
-                    {s.createdAt.toISOString().slice(0, 10)}
-                  </td>
+                  <td className="text-gray-500">{s.createdAt.toISOString().slice(0, 10)}</td>
                   <td>
-                    <ShopRowActions id={s.id} name={s.name} />
+                    <ShopRowActions id={s.id} name={s.name} isActive={s.isActive} />
                   </td>
                 </tr>
               ))}

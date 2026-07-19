@@ -10,20 +10,22 @@ datasource db {
 
 model Category {
   id    String @id @default(cuid())
-  name  String
-  slug  String @unique
-  shops Shop[]
+  name     String
+  slug     String  @unique
+  isActive Boolean @default(true)
+  shops    Shop[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Locality {
-  id      String @id @default(cuid())
-  name    String
-  pincode String
-  city    String
-  shops   Shop[]
+  id       String  @id @default(cuid())
+  name     String
+  pincode  String
+  city     String
+  isActive Boolean @default(true)
+  shops    Shop[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,6 +47,7 @@ model Shop {
   description String?
   verified    Boolean  @default(false)
   isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
 
   category Category      @relation(fields: [categoryId], references: [id])
   locality Locality      @relation(fields: [localityId], references: [id])
@@ -58,6 +61,7 @@ model Shop {
   @@index([categoryId])
   @@index([localityId])
   @@index([isFeatured])
+  @@index([isActive])
 }
 
 model ShopPhoto {

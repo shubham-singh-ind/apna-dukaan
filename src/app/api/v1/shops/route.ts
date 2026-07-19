@@ -12,6 +12,7 @@ export async function GET(req: Request) {
     const pageSize = Math.min(50, Math.max(1, Number(searchParams.get("pageSize") ?? 20)));
 
     const where = {
+      isActive: true,
       ...(category ? { category: { slug: category } } : {}),
       ...(locality ? { localityId: locality } : {}),
       ...(q

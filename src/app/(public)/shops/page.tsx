@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import ShopCard, { type ShopCardData } from "@/components/ShopCard";
+import { type ShopCardData } from "@/components/ShopCard";
+import NearbyShops from "@/components/NearbyShops";
 import { StoreIcon, ChevronRightIcon } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Search
   const [shops, categoryRow, localityRow] = await Promise.all([
     prisma.shop.findMany({
       where: {
+        isActive: true,
         ...(category ? { category: { slug: category } } : {}),
         ...(locality ? { localityId: locality } : {}),
         ...(q
@@ -64,11 +66,7 @@ export default async function ShopsPage({ searchParams }: { searchParams: Search
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {(shops as ShopCardData[]).map((shop) => (
-            <ShopCard key={shop.id} shop={shop} />
-          ))}
-        </div>
+        <NearbyShops shops={shops as ShopCardData[]} />
       )}
     </div>
   );

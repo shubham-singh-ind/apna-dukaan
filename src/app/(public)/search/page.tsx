@@ -13,6 +13,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
   const results = query
     ? await prisma.shop.findMany({
         where: {
+          isActive: true,
           OR: [
             { name: { contains: query, mode: "insensitive" } },
             { description: { contains: query, mode: "insensitive" } },

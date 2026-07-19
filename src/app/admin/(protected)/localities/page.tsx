@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import LocalityManager from "@/components/admin/LocalityManager";
 
 export const dynamic = "force-dynamic";
 
@@ -7,17 +8,13 @@ export default async function AdminLocalitiesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Localities</h1>
-      <ul className="divide-y rounded border">
-        {localities.map((l) => (
-          <li key={l.id} className="flex justify-between p-3 text-sm">
-            <span>{l.name}</span>
-            <span className="text-gray-400">
-              {l.pincode} · {l.city}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <div>
+        <h1 className="text-2xl font-bold">Localities</h1>
+        <p className="text-sm text-gray-500">
+          {localities.length} total · {localities.filter((l) => l.isActive).length} active
+        </p>
+      </div>
+      <LocalityManager localities={localities} />
     </div>
   );
 }

@@ -14,8 +14,9 @@ import {
 type Params = Promise<{ id: string }>;
 
 function getShop(id: string) {
-  return prisma.shop.findUnique({
-    where: { id },
+  // findFirst (not findUnique) so we can require isActive — inactive shops 404.
+  return prisma.shop.findFirst({
+    where: { id, isActive: true },
     include: {
       category: true,
       locality: true,
