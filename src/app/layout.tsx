@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   },
   description:
     "Find nearby neighborhood shops, view timings, contact details and today's updates.",
+  verification: {
+    google: "EDF6bQJubKeI3jJpaph6-Vh9J7Gdtkxl5Hwe0UCR4YE",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
