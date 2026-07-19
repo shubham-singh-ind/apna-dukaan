@@ -1,22 +1,38 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import ShopCard, { type ShopCardData } from "@/components/ShopCard";
+import {
+  SearchIcon,
+  CategoryIcon,
+  MapPinIcon,
+  ArrowRightIcon,
+  StoreIcon,
+} from "@/components/icons";
 
-// Renders live shop data — render per-request rather than prerender at build.
 export const dynamic = "force-dynamic";
 
-// Homepage — locality selector + categories (see PROJECT.md §6 Public).
+const SHOP_INCLUDE = {
+  category: { select: { name: true } },
+  locality: { select: { name: true } },
+  photos: { orderBy: { sort: "asc" as const }, take: 1, select: { url: true } },
+};
+
 export default async function HomePage() {
-  // Degrade gracefully before a database is connected so the deploy stays
-  // green ("hello world" milestone). Once DATABASE_URL is set this renders
-  // the real directory.
   let categories: { id: string; name: string; slug: string }[] = [];
   let localities: { id: string; name: string; pincode: string }[] = [];
+  let featured: ShopCardData[] = [];
   let dbConnected = true;
 
   try {
-    [categories, localities] = await Promise.all([
+    [categories, localities, featured] = await Promise.all([
       prisma.category.findMany({ orderBy: { name: "asc" } }),
       prisma.locality.findMany({ orderBy: { name: "asc" } }),
+      prisma.shop.findMany({
+        where: { isFeatured: true },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        include: SHOP_INCLUDE,
+      }),
     ]);
   } catch {
     dbConnected = false;
@@ -24,56 +40,107 @@ export default async function HomePage() {
 
   if (!dbConnected) {
     return (
-      <div className="space-y-3 text-center py-12">
-        <h1 className="text-3xl font-bold">Apna Dukaan 👋</h1>
-        <p className="text-gray-600">Hello world — the deploy is live.</p>
-        <p className="text-sm text-gray-400">
-          Connect a database (set <code>DATABASE_URL</code>) to load the shop directory.
-        </p>
+      <div className="space-y-3 py-16 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white">
+          <StoreIcon className="h-7 w-7" />
+        </div>
+        <h1 className="text-2xl font-bold">Apna Dukaan</h1>
+        <p className="text-slate-500">The deploy is live. Connect a database to load shops.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-10">
-      <section className="text-center space-y-3">
-        <h1 className="text-3xl font-bold">Discover shops near you</h1>
-        <p className="text-gray-600">
-          Browse verified neighborhood shops, timings, and today&apos;s updates.
+      {/* Hero */}
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-indigo-800 px-6 py-12 text-center text-white sm:py-16">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Discover shops near you
+        </h1>
+        <p className="mx-auto mt-2 max-w-md text-indigo-100">
+          Browse verified neighborhood shops — timings, contact and today&apos;s updates.
         </p>
+        <form
+          action="/search"
+          method="get"
+          className="mx-auto mt-6 flex max-w-md items-center gap-2 rounded-full bg-white p-1.5 shadow-lg"
+        >
+          <span className="pl-3 text-slate-400">
+            <SearchIcon className="h-5 w-5" />
+          </span>
+          <input
+            name="q"
+            placeholder="Search shops, e.g. grocery"
+            className="min-w-0 flex-1 bg-transparent px-1 py-2 text-slate-900 outline-none placeholder:text-slate-400"
+            aria-label="Search shops"
+          />
+          <button className="rounded-full bg-indigo-600 px-5 py-2 font-medium text-white hover:bg-indigo-700">
+            Search
+          </button>
+        </form>
       </section>
 
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Localities</h2>
-        <ul className="flex flex-wrap gap-2">
-          {localities.map((l) => (
-            <li key={l.id}>
+      {/* Categories */}
+      {categories.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Categories</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {categories.map((c) => (
               <Link
-                href={`/shops?locality=${l.id}`}
-                className="rounded border px-3 py-1 text-sm hover:bg-gray-50"
-              >
-                {l.name} · {l.pincode}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold mb-3">Categories</h2>
-        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {categories.map((c) => (
-            <li key={c.id}>
-              <Link
+                key={c.id}
                 href={`/shops?category=${c.slug}`}
-                className="block rounded border p-4 text-center hover:bg-gray-50"
+                className="group flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
               >
-                {c.name}
+                <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white">
+                  <CategoryIcon slug={c.slug} className="h-5 w-5" />
+                </span>
+                <span className="font-medium text-slate-800">{c.name}</span>
               </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Featured shops */}
+      {featured.length > 0 && (
+        <section>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Featured shops</h2>
+            <Link
+              href="/shops"
+              className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            >
+              View all
+              <ArrowRightIcon className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {featured.map((shop) => (
+              <ShopCard key={shop.id} shop={shop} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Localities */}
+      {localities.length > 0 && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Browse by locality</h2>
+          <div className="flex flex-wrap gap-2">
+            {localities.map((l) => (
+              <Link
+                key={l.id}
+                href={`/shops?locality=${l.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:text-indigo-600"
+              >
+                <MapPinIcon className="h-4 w-4 text-slate-400" />
+                {l.name}
+                <span className="text-slate-400">· {l.pincode}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

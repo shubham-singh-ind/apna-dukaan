@@ -1,6 +1,14 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import {
+  PhoneIcon,
+  MessageIcon,
+  MapPinIcon,
+  ClockIcon,
+  BadgeCheckIcon,
+  NavigationIcon,
+} from "@/components/icons";
 
 type Params = Promise<{ id: string }>;
 
@@ -102,11 +110,24 @@ export default async function ShopDetailPage({ params }: { params: Params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold">{shop.name}</h1>
-        <p className="text-gray-500">
-          {shop.category.name} · {shop.locality.name}, {shop.locality.city}
-          {shop.verified && <span className="ml-2 text-green-600 text-sm">✓ Verified</span>}
+      <header className="space-y-2">
+        <div className="flex items-start gap-2">
+          <h1 className="text-2xl font-bold text-slate-900">{shop.name}</h1>
+          {shop.verified && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+              <BadgeCheckIcon className="h-4 w-4" />
+              Verified
+            </span>
+          )}
+        </div>
+        <p className="flex items-center gap-1.5 text-slate-500">
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-sm text-slate-600">
+            {shop.category.name}
+          </span>
+          <span className="flex items-center gap-1 text-sm">
+            <MapPinIcon className="h-4 w-4 text-slate-400" />
+            {shop.locality.name}, {shop.locality.city}
+          </span>
         </p>
       </header>
 
@@ -150,9 +171,10 @@ export default async function ShopDetailPage({ params }: { params: Params }) {
           {shop.phone && (
             <a
               href={`tel:${digits(shop.phone)}`}
-              className="rounded-lg bg-black px-4 py-2 text-center text-white"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-medium text-white transition hover:bg-slate-800 sm:flex-none"
             >
-              📞 Call
+              <PhoneIcon className="h-5 w-5" />
+              Call
             </a>
           )}
           {shop.whatsapp && (
@@ -162,62 +184,83 @@ export default async function ShopDetailPage({ params }: { params: Params }) {
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg bg-green-600 px-4 py-2 text-center text-white"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 font-medium text-white transition hover:bg-green-700 sm:flex-none"
             >
-              💬 WhatsApp
+              <MessageIcon className="h-5 w-5" />
+              WhatsApp
             </a>
           )}
         </div>
       )}
 
-      {shop.description && <p className="text-gray-800">{shop.description}</p>}
+      {shop.description && <p className="leading-relaxed text-slate-700">{shop.description}</p>}
 
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-        <div>
-          <dt className="text-gray-500">Address</dt>
-          <dd>{shop.address}</dd>
+      <dl className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2">
+        <div className="flex gap-3">
+          <MapPinIcon className="h-5 w-5 flex-none text-indigo-600" />
+          <div>
+            <dt className="text-slate-500">Address</dt>
+            <dd className="text-slate-900">{shop.address}</dd>
+          </div>
         </div>
         {shop.hours && (
-          <div>
-            <dt className="text-gray-500">Timings</dt>
-            <dd>{shop.hours}</dd>
+          <div className="flex gap-3">
+            <ClockIcon className="h-5 w-5 flex-none text-indigo-600" />
+            <div>
+              <dt className="text-slate-500">Timings</dt>
+              <dd className="text-slate-900">{shop.hours}</dd>
+            </div>
           </div>
         )}
         {shop.phone && (
-          <div>
-            <dt className="text-gray-500">Phone</dt>
-            <dd>
-              <a href={`tel:${digits(shop.phone)}`}>{shop.phone}</a>
-            </dd>
+          <div className="flex gap-3">
+            <PhoneIcon className="h-5 w-5 flex-none text-indigo-600" />
+            <div>
+              <dt className="text-slate-500">Phone</dt>
+              <dd>
+                <a href={`tel:${digits(shop.phone)}`} className="text-indigo-600">
+                  {shop.phone}
+                </a>
+              </dd>
+            </div>
           </div>
         )}
         {shop.whatsapp && (
-          <div>
-            <dt className="text-gray-500">WhatsApp</dt>
-            <dd>
-              <a href={`https://wa.me/${digits(shop.whatsapp)}`}>{shop.whatsapp}</a>
-            </dd>
+          <div className="flex gap-3">
+            <MessageIcon className="h-5 w-5 flex-none text-indigo-600" />
+            <div>
+              <dt className="text-slate-500">WhatsApp</dt>
+              <dd>
+                <a href={`https://wa.me/${digits(shop.whatsapp)}`} className="text-indigo-600">
+                  {shop.whatsapp}
+                </a>
+              </dd>
+            </div>
           </div>
         )}
       </dl>
 
       {/* Map: keyless embed, lazy-loaded so it never blocks first paint */}
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Location</h2>
+        <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+          <MapPinIcon className="h-5 w-5 text-indigo-600" />
+          Location
+        </h2>
         <iframe
           title={`Map of ${shop.name}`}
           src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
-          className="h-64 w-full rounded-lg border-0"
+          className="h-64 w-full rounded-2xl border border-slate-200"
         />
         <a
           href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block text-sm text-blue-600"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
         >
-          Open in Google Maps →
+          <NavigationIcon className="h-4 w-4" />
+          Open in Google Maps
         </a>
       </section>
     </article>
