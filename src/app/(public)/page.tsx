@@ -55,10 +55,11 @@ export default async function HomePage() {
       {/* Hero */}
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 to-indigo-800 px-6 py-12 text-center text-white sm:py-16">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          Discover shops near you
+          Every local shop,
+          <br className="hidden sm:block" /> at your fingertips
         </h1>
-        <p className="mx-auto mt-2 max-w-md text-indigo-100">
-          Browse verified neighborhood shops — timings, contact and today&apos;s updates.
+        <p className="mx-auto mt-3 max-w-md text-indigo-100">
+          Find trusted neighbourhood stores near you — call or WhatsApp in seconds.
         </p>
         <form
           action="/search"
